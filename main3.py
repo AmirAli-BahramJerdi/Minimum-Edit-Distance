@@ -88,19 +88,35 @@ class EditDistanceCalculator:
         Convert the operation matrix to a Pandas DataFrame for better display and analysis,
         adding the source and target strings to the respective rows and columns.
         """
-        # Adding target as row labels and source as column labels
+        # Adding source as row labels and target as column labels (swapped)
         df = pd.DataFrame(self.operation_matrix)
-        df.columns = [''] + list(self.source)  # First column empty, then source characters
-        df.index = [''] + list(self.target)    # First row empty, then target characters
+        df.columns = [''] + list(self.target)  # First column empty, then target characters
+        df.index = [''] + list(self.source)    # First row empty, then source characters
         return df
 
-    def save_operation_matrix_to_excel(self, filename: str = 'edit_distance_operations.xlsx'):
+    def get_cost_matrix_as_dataframe(self) -> pd.DataFrame:
         """
-        Save the operation matrix to an Excel file with source and target characters included.
+        Convert the cost matrix (D matrix) to a Pandas DataFrame for better display and analysis,
+        adding the source and target strings to the respective rows and columns.
         """
-        df = self.get_operation_matrix_as_dataframe()
-        df.to_excel(filename, index=True)
-        print(f"Operation matrix with source and target saved to {filename}")
+        df = pd.DataFrame(self.D)
+        df.columns = [''] + list(self.target)  # First column empty, then target characters
+        df.index = [''] + list(self.source)    # First row empty, then source characters
+        return df
+
+    def save_matrices_to_excel(self, filename: str = 'edit_distance_with_cost.xlsx'):
+        """
+        Save both the operation matrix and cost matrix to an Excel file with source and target
+        characters included.
+        """
+        operation_df = self.get_operation_matrix_as_dataframe()
+        cost_df = self.get_cost_matrix_as_dataframe()
+        
+        with pd.ExcelWriter(filename) as writer:
+            operation_df.to_excel(writer, sheet_name="Operations")
+            cost_df.to_excel(writer, sheet_name="Costs")
+        
+        print(f"Matrices saved to {filename}")
 
     def print_operation_matrix(self):
         """Prints the operation matrix using Pandas for a cleaner display."""
@@ -108,11 +124,17 @@ class EditDistanceCalculator:
         print("\nOperation Matrix (lists of all possible operations in each cell):")
         print(df)
 
+    def print_cost_matrix(self):
+        """Prints the cost matrix using Pandas for a cleaner display."""
+        df = self.get_cost_matrix_as_dataframe()
+        print("\nCost Matrix:")
+        print(df)
+
 
 # Main function to demonstrate the class usage
 def main():
-    source = "intention"
-    target = "execution"
+    source = "drive"
+    target = "divers"
 
     # Create an instance of EditDistanceCalculator
     calculator = EditDistanceCalculator(source, target)
@@ -132,8 +154,11 @@ def main():
     # Print the operation matrix in a clean format
     calculator.print_operation_matrix()
 
-    # Optionally, save the matrix to an Excel file
-    calculator.save_operation_matrix_to_excel()
+    # Print the cost matrix in a clean format
+    calculator.print_cost_matrix()
+
+    # Optionally, save the matrices to an Excel file
+    calculator.save_matrices_to_excel()
 
 
 if __name__ == "__main__":
